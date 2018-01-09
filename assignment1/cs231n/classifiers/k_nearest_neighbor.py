@@ -67,28 +67,11 @@ class KNearestNeighbor(object):
     dists = np.zeros((num_test, num_train))
     for i in xrange(num_test):
       for j in xrange(num_train):
-        # extract the test and training images from our data
-        testImage = X[i];
-        trainImage = self.X_train[j];
-        # calculate the l2 distance between the two images
 
-        # step 1: find the element-wise difference
-        elementWiseDiff = np.subtract(testImage, trainImage)
+        # use cool numpy elementwise math operations to do computation
+        dists[i, j] = np.sqrt(np.sum(np.square(X[i] - self.X_train[j])))
 
-        # step 2: square the element wise difference
-        elementWiseDiffSquared = np.square(elementWiseDiff)
 
-        # step 3: find the sum of the squares of the element wise differences
-        sumSquares = np.sum(elementWiseDiffSquared)
-
-        # step 4: find the square root of the element wise difference
-        l2Dist = sumSquares ** (0.5)
-
-        # add it to our matrix
-        dists[i][j] = l2Dist
-        #####################################################################
-        #                       END OF YOUR CODE                            #
-        #####################################################################
     return dists
 
   def compute_distances_one_loop(self, X):
@@ -101,16 +84,14 @@ class KNearestNeighbor(object):
     num_test = X.shape[0]
     num_train = self.X_train.shape[0]
     dists = np.zeros((num_test, num_train))
+
     for i in xrange(num_test):
-      #######################################################################
-      # TODO:                                                               #
-      # Compute the l2 distance between the ith test point and all training #
-      # points, and store the result in dists[i, :].                        #
-      #######################################################################
-      pass
-      #######################################################################
-      #                         END OF YOUR CODE                            #
-      #######################################################################
+
+      # use numpy broadcasting to do this. axis=1 specifies that we want
+      # to compute the sum of the rows, and not the columns
+
+      dists[i, :] = np.sqrt(np.sum((self.X_train - X[i, :])**2, axis=1))
+
     return dists
 
   def compute_distances_no_loops(self, X):
@@ -135,7 +116,7 @@ class KNearestNeighbor(object):
     # HINT: Try to formulate the l2 distance using matrix multiplication    #
     #       and two broadcast sums.                                         #
     #########################################################################
-    pass
+    dists = np.sqrt((X**2).sum(axis=1)[:, np.newaxis] + (self.X_train**2).sum(axis=1) - 2 * X.dot(self.X_train.T))
     #########################################################################
     #                         END OF YOUR CODE                              #
     #########################################################################
@@ -163,14 +144,8 @@ class KNearestNeighbor(object):
 
       # get distances for particular image. get ranking of distances using
       # np.argsort()
-      labelIndices = np.argsort(dists[i])
-
-      # iterate over all k
-      for j in range(k):
-        # get the label for the kth closest neighbour
-        currentLabelIndex = np.where(labelIndices == j)[0][0]
-        # add it to our list
-        closest_y.append(self.y_train[currentLabelIndex])
+      # print(np.argsort(dists[i, :])[:k])
+      closest_y = np.array(self.y_train[np.argsort(dists[i, :])[:k]])
 
       # get most common element using numpy magic
       # NOTE: argmax() always defaults to the first occurrence. this works out
