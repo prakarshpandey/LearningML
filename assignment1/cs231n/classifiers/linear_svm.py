@@ -59,8 +59,18 @@ def svm_loss_vectorized(W, X, y, reg):
   Inputs and outputs are the same as svm_loss_naive.
   """
   loss = 0.0
+  delta = 1.0
   dW = np.zeros(W.shape) # initialize the gradient as zero
-
+  scores = X.dot(W)
+  print(scores.shape)
+  correct_class_scores = scores[np.arange(X.shape[0]), y]
+  print(correct_class_scores[:, np.newaxis].shape)
+  margins = np.maximum(0, scores - correct_class_scores[:, np.newaxis] + delta)
+  # correct margin for correct label where the margin is currently delta
+  margins[np.arange(X.shape[0]), y] = 0
+  loss = np.sum(margins)
+  loss /= X.shape[0]
+  # loss += 0.5 * reg * np.sum(W * W)
   #############################################################################
   # TODO:                                                                     #
   # Implement a vectorized version of the structured SVM loss, storing the    #
