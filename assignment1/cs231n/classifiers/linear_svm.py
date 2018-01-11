@@ -34,12 +34,14 @@ def svm_loss_naive(W, X, y, reg):
     for j in xrange(num_classes):
       if j == y[i]:
         continue
-      margin = scores[j] - correct_class_score + 1 # note delta = 1
+      # note delta = 1
+      margin = scores[j] - correct_class_score + 1
       if margin > 0:
         num_incorrect_classes += 1
-        dW[:, j] += X[i] # gradient update for incorrect rows
+        # gradient update for incorrect rows
+        dW[:, j] += X[i]
         loss += margin
-
+    # gradient update for correct rows
     dW[:, y[i]] += -num_incorrect_classes * X[i]
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
@@ -62,38 +64,26 @@ def svm_loss_vectorized(W, X, y, reg):
   delta = 1.0
   dW = np.zeros(W.shape) # initialize the gradient as zero
   scores = X.dot(W)
-  print(scores.shape)
   correct_class_scores = scores[np.arange(X.shape[0]), y]
-  print(correct_class_scores[:, np.newaxis].shape)
+  # calculate the margins using a vectorized operation
   margins = np.maximum(0, scores - correct_class_scores[:, np.newaxis] + delta)
   # correct margin for correct label where the margin is currently delta
   margins[np.arange(X.shape[0]), y] = 0
+
   loss = np.sum(margins)
   loss /= X.shape[0]
-  # loss += 0.5 * reg * np.sum(W * W)
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the structured SVM loss, storing the    #
-  # result in loss.                                                           #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+  loss += 0.5 * reg * np.sum(W * W)
 
+  # start calculating dW
+  X_mask = np.zeros(margins.shape)
+  X_mask[margins > 0] = 1
+  # create an array of the number of incorrect guesses for each class
+  incorrect_classes_for_sample = np.sum(X_mask, axis=1)
 
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the gradient for the structured SVM     #
-  # loss, storing the result in dW.                                           #
-  #                                                                           #
-  # Hint: Instead of computing the gradient from scratch, it may be easier    #
-  # to reuse some of the intermediate values that you used to compute the     #
-  # loss.                                                                     #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
-
+  # coefficients of gradient correction for correct classes
+  X_mask[np.arange(X.shape[0]), y] = -incorrect_classes_for_sample
+  # convert the mathematics of the loop to matrix multiplication
+  dW = X.T.dot(X_mask)
+  dW /= X.shape[0]
+  dW += reg * W
   return loss, dW
