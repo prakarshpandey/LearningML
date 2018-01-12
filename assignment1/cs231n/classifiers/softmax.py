@@ -73,6 +73,7 @@ def softmax_loss_vectorized(W, X, y, reg):
 
   loss = np.sum(-np.log(correct_probability_list))
   loss /= num_train
+  loss += 0.5*reg*np.sum(W*W)
   # for calculating dW
   correct_label_indices = np.zeros_like(probability_list)
   # make the elements that correspond to the correct label 1
