@@ -70,17 +70,15 @@ def softmax_loss_vectorized(W, X, y, reg):
   sum_j_list = np.sum(np.exp(scores), axis=1, keepdims=True)
   probability_list = np.exp(scores) / sum_j_list
   correct_probability_list = probability_list[np.arange(num_train), y]
+
   loss = np.sum(-np.log(correct_probability_list))
   loss /= num_train
-  #############################################################################
-  # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
-  # Store the loss in loss and the gradient in dW. If you are not careful     #
-  # here, it is easy to run into numeric instability. Don't forget the        #
-  # regularization!                                                           #
-  #############################################################################
-  pass
-  #############################################################################
-  #                          END OF YOUR CODE                                 #
-  #############################################################################
+  # for calculating dW
+  correct_label_indices = np.zeros_like(probability_list)
+  # make the elements that correspond to the correct label 1
+  correct_label_indices[np.arange(num_train), y] = 1
+  dW = X.T.dot(probability_list - correct_label_indices)
+  dW /= num_train
+  dW += reg * W
 
   return loss, dW
