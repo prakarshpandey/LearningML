@@ -25,23 +25,23 @@ def softmax_loss_naive(W, X, y, reg):
   dW = np.zeros_like(W)
   num_train = X.shape[0]
   num_classes = W.shape[1]
-  #############################################################################
-  # TODO: Compute the softmax loss and its gradient using explicit loops.     #
-  # Store the loss in loss and the gradient in dW. If you are not careful     #
-  # here, it is easy to run into numeric instability. Don't forget the        #
-  # regularization!                                                           #
-  #############################################################################
+
   for i in range(num_train):
+      # compute scores
       scores = X[i].dot(W)
+      # this is a trick to minimise computational instability
       scores -= np.max(scores)
+      # extract some information for ease
       correct_label = y[i]
       correct_label_score = scores[correct_label]
+      # calculate denominator in the softmax loss calculation
       sum_j = np.sum(np.exp(scores))
+      # define a probability function
       p = lambda x: np.exp(x) / sum_j
       loss += -np.log(p(correct_label_score))
       for j in range(num_classes):
         p_j = p(scores[j])
-        dW[:, j] += (p_j - (j == y[i])) * X[i]
+        dW[:, j] += (p_j - (j == correct_label)) * X[i]
 
   loss /= num_train
   loss += 0.5 * reg * np.sum(W * W)
@@ -63,7 +63,15 @@ def softmax_loss_vectorized(W, X, y, reg):
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
-
+  scores = X.dot(W)
+  num_train = X.shape[0]
+  # trick to minimise computational instability
+  scores -= np.max(scores, axis=1, keepdims=True)
+  sum_j_list = np.sum(np.exp(scores), axis=1, keepdims=True)
+  probability_list = np.exp(scores) / sum_j_list
+  correct_probability_list = probability_list[np.arange(num_train), y]
+  loss = np.sum(-np.log(correct_probability_list))
+  loss /= num_train
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
