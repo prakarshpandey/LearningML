@@ -103,7 +103,7 @@ class TwoLayerNet(object):
     grads["b2"] = db2
     # backprop into hidden layer
     dhidden = dscores.dot(W2.T)
-    # undo the ReLU
+    # ReLU
     dhidden[first_layer_regularised <= 0] = 0
     dW1 = X.T.dot(dhidden)
     db1 = np.sum(dhidden, axis=0)
